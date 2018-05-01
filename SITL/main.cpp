@@ -1,9 +1,15 @@
 #include <iostream>
+#include "Cpu.h"
 
 using namespace std;
 
 int main()
 {
-    cout << "Hello world!" << endl;
+    Cpu cpu;
+    cpu.initialize();
+    while (1)
+    {
+        cpu.cycle();
+    }
     return 0;
 }
