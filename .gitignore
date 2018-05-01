@@ -1,0 +1,8 @@
+SITL/bin/
+SITL/help/
+SITL/obj/
+
+*.cbp
+*.depend
+*.layout
+*.dll
