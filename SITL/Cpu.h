@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <ctime>
+#include <iostream>
 
 class Cpu
 {
@@ -27,6 +28,11 @@ class Cpu
         std::tm date0;
         //Memory
         uint8_t MEM[0x10000]; //The machine's memory
+
+        inline void unknownOp(uint32_t op)
+        {
+            std::cout << "Unknown op : " << std::hex << op << '\n';
+        };
 };
 
 #endif // CPU_H
