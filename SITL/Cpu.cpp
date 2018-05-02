@@ -25,7 +25,7 @@ Cpu::cycle()
     switch (opCode & 0xF00000)
     {
     case 0x000000:
-        switch (opCode & 0X0F0000)
+        switch (opCode & 0x0F0000)
         {
             case 0x000000:  //NOP
                 break;
@@ -47,27 +47,27 @@ Cpu::cycle()
                 pcChanged = true;
                 break;
             case 0x050000:
-                switch (op & 0x00F000)
+                switch (opCode & 0x00F000)
                 {
                     case 0x000000:  //RET
                         SP -= 2;
                         PC = (MEM[SP] << 8) | (MEM[SP + 1]);
                         break;
                     case 0x001000:  //JP Ix
-                        PC = I[op & 0x00000F] & 0xFFFF;
+                        PC = I[opCode & 0x00000F] & 0xFFFF;
                         pcChanged = true;
                         break;
                     case 0x002000:  //JPIF Ix
                         if (N[0xF] & 0x1)
                         {
-                            PC = I[op & 0x00000F] & 0xFFFF;
+                            PC = I[opCode & 0x00000F] & 0xFFFF;
                             pcChanged = true;
                         }
                         break;
                     case 0x003000:  //JPNIF Ix
                         if (!(N[0xF] & 0x1))
                         {
-                            PC = I[op & 0x00000F] & 0xFFFF;
+                            PC = I[opCode & 0x00000F] & 0xFFFF;
                             pcChanged = true;
                         }
                         break;
@@ -93,12 +93,14 @@ Cpu::cycle()
                         SP++;
                         break;
                     case 0x002000:  //PUSH Ix
-                        uint32_t val = I[opCode & 0xF];
-                        MEM[SP + 0] = (val & 0xFF000000) >> 24;
-                        MEM[SP + 1] = (val & 0x00FF0000) >> 16;
-                        MEM[SP + 2] = (val & 0x0000FF00) >> 8;
-                        MEM[SP + 3] = (val & 0x000000FF);
-                        SP += 4;
+                        {
+                            uint32_t val = I[opCode & 0xF];
+                            MEM[SP + 0] = (val & 0xFF000000) >> 24;
+                            MEM[SP + 1] = (val & 0x00FF0000) >> 16;
+                            MEM[SP + 2] = (val & 0x0000FF00) >> 8;
+                            MEM[SP + 3] = (val & 0x000000FF);
+                            SP += 4;
+                        }
                         break;
                     default:
                         unknownOp(opCode);
@@ -127,7 +129,88 @@ Cpu::cycle()
         }
         break;
     case 0x100000:
-        //TODO
+        switch (opCode & 0x0F0000)
+        {
+            case 0x000000:  //LD Bx, n
+                B[(opCode & 0x000F00) >> 8] = (opCode & 0x0000FF);
+                break;
+            case 0x010000:  //LD Nx, n
+                N[(opCode & 0x0000F0) >> 4] = (opCode & 0x00000F);
+                break;
+            case 0x020000:  //LD Bx, By
+                B[(opCode & 0x0000F0) >> 4] = B[(opCode & 0x00000F)];
+                break;
+            case 0x030000:  //LD Nx, Ny
+                N[(opCode & 0x0000F0) >> 4] = N[(opCode & 0x00000F)];
+                break;
+            case 0x040000:  //LD Ix, Iy
+                I[(opCode & 0x0000F0) >> 4] = I[(opCode & 0x00000F)];
+                break;
+            case 0x050000:  //LD Ix, By
+                I[(opCode & 0x0000F0) >> 4] = B[(opCode & 0x00000F)];
+                break;
+            case 0x060000:  //LD Ix, n
+                I[(opCode & 0x000F00) >> 8] = (opCode & 0x0000FF);
+                break;
+            case 0x070000:  //LD Bx, Iy
+                B[(opCode & 0x0000F0) >> 4] = (I[(opCode & 0x00000F)] & 0xFF);
+                break;
+            case 0x080000:
+                switch (opCode & 0x00F000)
+                {
+                    case 0x000000:  //LD BNx, By
+                        B[N[(opCode & 0x0000F0) >> 4]] = B[(opCode & 0x00000F)];
+                        break;
+                    case 0x001000:  //LD INx, Iy
+                        I[N[(opCode & 0x0000F0) >> 4]] = I[(opCode & 0x00000F)];
+                        break;
+                    case 0x002000:  //LD Bx, BNy
+                        B[(opCode & 0x0000F0) >> 4] = B[N[(opCode & 0x00000F)]];
+                        break;
+                    case 0x003000:  //LD Ix, INy
+                        I[(opCode & 0x0000F0) >> 4] = I[N[(opCode & 0x00000F)]];
+                        break;
+                    default:
+                        unknownOp(opCode);
+                        break;
+                }
+                break;
+            case 0x090000:
+                switch (opCode & 0x00F000)
+                {
+                    case 0x000000:  //CLD Bx, By, Bz
+                        if (N[0xF])
+                        {
+                            B[(opCode & 0x000F00) >> 8] = B[(opCode & 0x0000F0) >> 4];
+                        }
+                        else
+                            B[(opCode & 0x000F00) >> 8] = B[(opCode & 0x00000F)];
+                        break;
+                    case 0x001000:  //CLD Nx, Ny, Nz
+                        if (N[0xF])
+                        {
+                            N[(opCode & 0x000F00) >> 8] = N[(opCode & 0x0000F0) >> 4];
+                        }
+                        else
+                            N[(opCode & 0x000F00) >> 8] = N[(opCode & 0x00000F)];
+                        break;
+                    case 0x002000:  //CLD Ix, Iy, Iz
+                        if (N[0xF])
+                        {
+                            I[(opCode & 0x000F00) >> 8] = I[(opCode & 0x0000F0) >> 4];
+                        }
+                        else
+                            I[(opCode & 0x000F00) >> 8] = I[(opCode & 0x00000F)];
+                        break;
+                    default:
+                        unknownOp(opCode);
+                        break;
+                }
+                break;
+            default:
+                unknownOp(opCode);
+                break;
+        }
         break;
     case 0x200000:
         //TODO
@@ -190,6 +273,7 @@ Cpu::initialize()
     }
     PC = 0x1000;    //Where should it be initialized?
     SP = 0x500;     //The standard stack starts at 0x500 and finishes at 0xFFF
+    IMASK = 0;
     for (int i = 0; i < 0x10000; i++)
         MEM[i] = 0;
     //TODO : Load the fontset

@@ -23,9 +23,12 @@ class Cpu
 
         uint32_t DT;        //Delay timer
         uint32_t TS;        //Time stamp
+
+        uint32_t IMASK;     //Interrupt mask
         //Time
         time_t timer;
         std::tm date0;
+
         //Memory
         uint8_t MEM[0x10000]; //The machine's memory
 
