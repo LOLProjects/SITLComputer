@@ -213,13 +213,46 @@ Cpu::cycle()
         }
         break;
     case 0x200000:
-        //TODO
+        switch (opCode & 0x0F0000)
+        {
+            case 0x0A0000:  //FUS Nx, Ny, Bn
+                N[opCode & 0xF] = 0;
+                B[opCode & 0xF00] = N[opCode & 0xF];
+                B[opCode & 0xF00] |= (N[opCode & 0xF0] << 4);
+                break;
+            case 0x0B0000:  //UFUS Nx, Ny, Bn
+                N[opCode & 0xF] = (B[opCode & 0xF00] & 0xF);
+                N[opCode & 0xF0] = ((B[opCode & 0xF00] & 0xF0) >> 4);
+                break;
+            case 0x0C0000:  //FUSLO Bx, By, In
+                I[opCode & 0xF00] |= B[opCode & 0xF];
+                I[opCode & 0xF00] |= (B[opCode & 0xF0] << 8);
+                break;
+            case 0x0D0000:  //UFUSLO Bx, By, In
+                B[opCode & 0xF] = (I[opCode & 0xF00] & 0xFF);
+                B[opCode & 0xF0] = ((I[opCode & 0xF00] & 0xFF00) >> 8);
+                break;
+            case 0x0E0000:  //FUSHI Bx, By, In
+                I[opCode & 0xF00] |= (B[opCode & 0xF] << 16);
+                I[opCode & 0xF00] |= (B[opCode & 0xF0] << 24);
+                break;
+            case 0x0F0000:  //UFUSHI
+                B[opCode & 0xF] = ((I[opCode & 0xF00] & 0xFF0000) >> 16);
+                B[opCode & 0xF0] = ((I[opCode & 0xF00] & 0xFF000000) >> 24);
+                break;
+            default:
+                unknownOp(opCode);
+                break;
+        }
         break;
-    case 0x300000:
-        //TODO
+    case 0x300000:  //FUS Bw, Bx, By, Bz, In
+        I[opCode & 0xF0000] = (B[opCode & 0xF] << 0) | (B[opCode & 0xF0] << 8) | (B[opCode & 0xF00] << 16) | (B[opCode & 0xF000] << 24);
         break;
-    case 0x400000:
-        //TODO
+    case 0x400000:  //UFUS  Bw, Bx, By, Bz, In
+        B[opCode & 0x000F] = I[opCode & 0xF0000] & 0x000000FF >> 00;
+        B[opCode & 0x00F0] = I[opCode & 0xF0000] & 0x0000FF00 >> 08;
+        B[opCode & 0x0F00] = I[opCode & 0xF0000] & 0x00FF0000 >> 16;
+        B[opCode & 0xF000] = I[opCode & 0xF0000] & 0xFF000000 >> 24;
         break;
     case 0x500000:
         //TODO
