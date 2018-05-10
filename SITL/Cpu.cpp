@@ -34,7 +34,7 @@ Cpu::cycle()
                 PC = opCode & 0xFFFF;
                 break;
             case 0x020000:  //JPIF addr
-                if (N[0xF] & 0x1)
+                if (N[0xF])
                 {
                     pcChanged = true;
                     PC = opCode & 0xFFFF;
@@ -58,14 +58,15 @@ Cpu::cycle()
                         pcChanged = true;
                         break;
                     case 0x002000:  //JPIF Ix
-                        if (N[0xF] & 0x1)
+                        if (N[0xF])
                         {
                             PC = I[opCode & 0x00000F] & 0xFFFF;
                             pcChanged = true;
                         }
                         break;
                     case 0x003000:  //JPNIF Ix
-                        if (!(N[0xF] & 0x1))
+                        if (!N[0xF]
+                           )
                         {
                             PC = I[opCode & 0x00000F] & 0xFFFF;
                             pcChanged = true;
